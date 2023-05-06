@@ -1,0 +1,46 @@
+package com.idcardgenerator;
+
+import java.io.File;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+import com.idcardgenerator.entities.UserEntity;
+import com.idcardgenerator.services.UserService;
+
+@SpringBootApplication
+public class IdCardGeneratorApplication {
+
+	public static void main(String[] args) {
+		SpringApplication.run(IdCardGeneratorApplication.class, args);
+		System.out.println("Hello Maven!!");
+		UserService userService = new UserService();
+		String csvFilePath = null;
+		try {
+			File file = new File("src/main/resources/csv/Users.csv");
+			csvFilePath = file.getPath();
+		} catch (NullPointerException e){
+			e.printStackTrace();
+		}
+		List<String[]> records = userService.getDataFromCsv(csvFilePath);
+		userService.showData(records);
+		userService.addToClass(records);
+//		Iterator iterator = entity.entrySet().iterator();
+//		while(iterator.hasNext()){
+//			System.out.println(iterator.next());
+//		}
+
+
+
+//		for(UserEntity e : entity){
+//			String pdfFile = "C:\\Users\\Amar\\Documents\\ForInterviewData\\"+e.getName()+".pdf";
+//			userService.generatePdfIdCard(e,pdfFile);
+//		}
+		
+		
+	}
+
+}

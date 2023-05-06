@@ -1,0 +1,212 @@
+package com.idcardgenerator.services;
+
+import com.idcardgenerator.entities.UserEntity;
+import com.itextpdf.text.*;
+
+import com.itextpdf.text.pdf.PdfPCell;
+import com.itextpdf.text.pdf.PdfPTable;
+import com.itextpdf.text.pdf.PdfWriter;
+import com.itextpdf.text.pdf.draw.LineSeparator;
+
+import java.io.*;
+import java.nio.file.Files;
+	import java.nio.file.Path;
+	import java.nio.file.Paths;
+import java.util.*;
+import java.util.List;
+
+public class UserService {
+
+	    //method to import data from the CSV file
+	    public List<String[]> getDataFromCsv(String csvFile){
+	        String line;
+	        String delimiter = ",";
+	        List<String[]> records = new ArrayList<>();
+	        try(BufferedReader br = new BufferedReader(new FileReader(csvFile))){
+				if(csvFile.isEmpty()) {
+					throw new FileNotFoundException("File Path provided might be wrong..");
+				}
+	            while((line = br.readLine())!= null) {
+	                StringTokenizer tokenizer = new StringTokenizer(line,delimiter);
+	                String[] fields = new String[tokenizer.countTokens()];
+	                int i = 0;
+	                while(tokenizer.hasMoreTokens()){
+	                    String token = tokenizer.nextToken();
+	                    if(token.endsWith(".jpg") || token.endsWith(".png")){
+	                        //reading the photo data as binary data
+	                        byte[] bytes = readPhoto(token);
+	                        String base64Photo = Base64.getEncoder().encodeToString(bytes);
+	                        fields[i++] = base64Photo;
+	                    } else {
+	                        fields[i++] = token;
+	                    }
+	                }
+	                records.add(fields);
+	            }
+	        }catch (FileNotFoundException fe){
+				System.out.println(fe.getMessage());
+			}catch(IOException e) {
+	            e.printStackTrace();
+	        }catch (ArrayIndexOutOfBoundsException ae){
+				ae.printStackTrace();
+			}
+	        return records;
+	    }
+
+	    //method to read photo from csv file
+	    private static byte[] readPhoto(String photoFile) throws IOException{
+	        Path path = Paths.get(photoFile);
+	        return Files.readAllBytes(path) ;
+	    }
+
+	    //method to print file data just imported above
+	    public void showData(List<String[]> records) {
+	        for(String[] record : records){
+	            for(String field : record){
+	                System.out.println(field + " ");
+	            }
+	            System.out.println();
+	        }
+	    }
+
+	    //method to populate our custom class fields with the fields coming from the csv file
+	    public void createIdCard(List<String[]> records){
+	        UserEntity userEntity = new UserEntity();
+//	        Map<Integer,UserEntity> users = new HashMap<>();
+			for(String[] record : records){
+	            int id = Integer.parseInt(record[0]);
+	            String name = record[1];
+	            String position = record[2];
+	            String phone = record[3];
+	            String email = record[4];
+	            String base64Photo = record[5];
+	            byte[] photo = Base64.getDecoder().decode(base64Photo);
+
+	            //setting the class fields with the data from the record
+	                userEntity.setId(id);
+	                userEntity.setName(name);
+	                userEntity.setPosition(position);
+	                userEntity.setPhone(phone);
+	                userEntity.setEmail(email);
+	                userEntity.setPhoto(photo);
+
+//					users.put(userEntity.getId(), userEntity);
+					//Outputting record to PDF
+				String pdfFilePath = "C:\\Users\\Amar\\Documents\\Output\\";
+				String pdfFileName = pdfFilePath+userEntity.getName()+"_"+System.currentTimeMillis()+".pdf";
+				generatePdfIdCard(userEntity,pdfFileName);
+	        }
+//	        return users;
+	    }
+
+	    //method to create the pdf ID Card using the retrieved user properties from the csv file
+		public void generatePdfIdCard(UserEntity userEntity, String pdfFile) {
+
+			Document document = null;
+			try {
+				File file = new File(pdfFile);
+				boolean isCreated = false;
+				if(!file.exists()){
+					isCreated = file.createNewFile();
+				}
+				if(!isCreated){
+					System.out.println("PDF File could not be created.");
+				}
+				document = new Document(PageSize.A8, 2, 2,10,2);
+				PdfWriter.getInstance(document, new FileOutputStream(pdfFile));
+				document.open();
+
+
+				//Add Name
+				Paragraph namePara = new Paragraph(userEntity.getName(),
+						new Font(Font.FontFamily.HELVETICA,16,Font.BOLD));
+				namePara.setAlignment(Element.ALIGN_CENTER);
+				document.add(namePara);
+
+				//Adding Line Separator
+				LineSeparator separator = new LineSeparator();
+				separator.setLineColor(BaseColor.BLACK);
+				separator.setLineWidth(0.5f);
+				separator.setPercentage(80f);
+				document.add(separator);
+
+				//Add Position
+				Paragraph posPara = new Paragraph(userEntity.getPosition(),
+						new Font(Font.FontFamily.HELVETICA,12,Font.BOLD));
+				posPara.setAlignment(Element.ALIGN_CENTER);
+				document.add(posPara);
+
+//				//Adding Line Separator
+//				document.add(separator);
+
+				//Add Phone
+				Paragraph phonePara = new Paragraph(userEntity.getPhone(),
+						new Font(Font.FontFamily.HELVETICA,12,Font.BOLD));
+				phonePara.setAlignment(Element.ALIGN_CENTER);
+				document.add(phonePara);
+
+//				//Adding Line Separator
+//				document.add(separator);
+
+				//Add Email
+				Paragraph emailPara = new Paragraph(userEntity.getEmail(),
+						new Font(Font.FontFamily.HELVETICA,12,Font.BOLD));
+				emailPara.setAlignment(Element.ALIGN_CENTER);
+				document.add(emailPara);
+
+
+//				document.add(separator);      //Adding Line Separator
+
+
+				//Add Photo
+				byte[] photoBytes = userEntity.getPhoto();
+				Image image = Image.getInstance(photoBytes);
+				image.scaleToFit(80,80);
+				image.setAlignment(Element.ALIGN_CENTER);
+				document.add(image);
+
+
+
+
+//				PdfPTable table = new PdfPTable(1);
+//				// Set border for table
+//				table.getDefaultCell().setBorder(Rectangle.BOX);
+//				table.getDefaultCell().setBorderColor(BaseColor.BLACK);
+//				table.getDefaultCell().setBorderWidth(3f);
+//				document.add(table);
+////				table.setWidths(new float[]{1});
+//
+////				table.addCell(new PdfPCell(new Phrase("Name:")));
+//				table.addCell(new PdfPCell(new Phrase(userEntity.getName())));
+////				table.addCell(new PdfPCell(new Phrase("Position:")));
+//				table.addCell(new PdfPCell(new Phrase(userEntity.getPosition())));
+////				table.addCell(new PdfPCell(new Phrase("Phone:")));
+//				table.addCell(new PdfPCell(new Phrase(userEntity.getPhone())));
+////				table.addCell(new PdfPCell(new Phrase("Email:")));
+//				table.addCell(new PdfPCell(new Phrase(userEntity.getEmail())));
+
+//				Paragraph paragraph = new Paragraph("Name: " + userEntity.getName() + "\nPosition:" +
+//						userEntity.getPosition() + "\nPhone:" + userEntity.getPhone() +
+//						"\nEmail: " + userEntity.getEmail() + "\n");
+//				document.add(paragraph);
+//
+//				PdfPCell photoCell = new PdfPCell(image, true);
+//				photoCell.setRowspan(3);
+//				table.addCell(photoCell);
+//				document.add(table);
+
+			} catch (DocumentException de) {
+				de.printStackTrace();
+			} catch (IOException e) {
+				e.printStackTrace();
+			} finally {
+				document.close();
+				System.out.println("PDF File generated Successfully");
+			}
+		}
+	}
+	
+	
+	
+
+

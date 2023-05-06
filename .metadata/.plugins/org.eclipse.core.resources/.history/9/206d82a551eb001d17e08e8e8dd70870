@@ -1,0 +1,26 @@
+package com.idcardgenerator;
+
+import java.util.List;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+import com.idcardgenerator.entities.UserEntity;
+import com.idcardgenerator.services.UserService;
+
+@SpringBootApplication
+public class IdCardGeneratorApplication {
+
+	public static void main(String[] args) {
+		SpringApplication.run(IdCardGeneratorApplication.class, args);
+		System.out.println("Hello Maven!!");
+		UserService userService = new UserService();
+		UserService.checkWorking();
+		List<String[]> records = userService.getDataFromCsv("C:\\Users\\Amar\\Documents\\ForInterviewData\\Users.csv");
+		userService.showData(records);
+		UserEntity entity = userService.addToClass(records);
+		
+		
+	}
+
+}

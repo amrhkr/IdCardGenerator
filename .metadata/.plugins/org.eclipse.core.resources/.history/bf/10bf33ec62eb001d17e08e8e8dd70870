@@ -1,0 +1,30 @@
+package com.idcardgenerator;
+
+import java.util.List;
+import java.util.SimpleTimeZone;
+import java.util.TimeZone;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+import com.idcardgenerator.entities.UserEntity;
+import com.idcardgenerator.services.UserService;
+import org.springframework.format.annotation.DateTimeFormat;
+
+@SpringBootApplication
+public class IdCardGeneratorApplication {
+
+	public static void main(String[] args) {
+		SpringApplication.run(IdCardGeneratorApplication.class, args);
+		System.out.println("Hello Maven!!");
+		UserService userService = new UserService();
+
+		List<String[]> records = userService.getDataFromCsv("C:\\Users\\Amar\\Documents\\ForInterviewData\\Users.csv");
+		userService.showData(records);
+		UserEntity entity = userService.addToClass(records);
+		userService.generatePdfIdCard(entity,"C:\\Users\\Amar\\Documents\\ForInterviewData\\"+entity.getName()+".pdf");
+		
+		
+	}
+
+}
