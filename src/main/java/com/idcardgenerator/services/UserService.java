@@ -2,19 +2,17 @@ package com.idcardgenerator.services;
 
 import com.idcardgenerator.entities.UserEntity;
 import com.itextpdf.text.*;
-
-import com.itextpdf.text.pdf.PdfPCell;
-import com.itextpdf.text.pdf.PdfPTable;
 import com.itextpdf.text.pdf.PdfWriter;
 import com.itextpdf.text.pdf.draw.LineSeparator;
 
 import java.io.*;
 import java.nio.file.Files;
-	import java.nio.file.Path;
-	import java.nio.file.Paths;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.*;
 import java.util.List;
 
+//This Class contains all the business logics
 public class UserService {
 
 	// 1. method to import data from the CSV file
@@ -47,12 +45,10 @@ public class UserService {
 	            }
 	        }catch (FileNotFoundException fe){
 				System.out.println(fe.getMessage());
-			}catch (ArrayIndexOutOfBoundsException ae){
+			}catch (ArrayIndexOutOfBoundsException | IOException ae){
 				ae.printStackTrace();
-			} catch(IOException e) {
-	            e.printStackTrace();
-	        }
-	        return records;
+			}
+			return records;
 	    }
 
 	// method to read photo from csv file into the byte array
@@ -188,39 +184,12 @@ public class UserService {
 			} finally {
 				if(document != null){
 					document.close();
+					System.out.println("PDF File for --" + userEntity.getName() + "-- generated Successfully");
 				} else{
 					System.out.println("PDF File could not be generated.");
-					return;
 				}
-				System.out.println("PDF File for --" + userEntity.getName() + "-- generated Successfully");
 			}
 		}
 	}
 
 
-//				PdfPTable table = new PdfPTable(1);
-//				// Set border for table
-//				table.getDefaultCell().setBorder(Rectangle.BOX);
-//				table.getDefaultCell().setBorderColor(BaseColor.BLACK);
-//				table.getDefaultCell().setBorderWidth(3f);
-//				document.add(table);
-////				table.setWidths(new float[]{1});
-//
-////				table.addCell(new PdfPCell(new Phrase("Name:")));
-//				table.addCell(new PdfPCell(new Phrase(userEntity.getName())));
-////				table.addCell(new PdfPCell(new Phrase("Position:")));
-//				table.addCell(new PdfPCell(new Phrase(userEntity.getPosition())));
-////				table.addCell(new PdfPCell(new Phrase("Phone:")));
-//				table.addCell(new PdfPCell(new Phrase(userEntity.getPhone())));
-////				table.addCell(new PdfPCell(new Phrase("Email:")));
-//				table.addCell(new PdfPCell(new Phrase(userEntity.getEmail())));
-
-//				Paragraph paragraph = new Paragraph("Name: " + userEntity.getName() + "\nPosition:" +
-//						userEntity.getPosition() + "\nPhone:" + userEntity.getPhone() +
-//						"\nEmail: " + userEntity.getEmail() + "\n");
-//				document.add(paragraph);
-//
-//				PdfPCell photoCell = new PdfPCell(image, true);
-//				photoCell.setRowspan(3);
-//				table.addCell(photoCell);
-//				document.add(table);
